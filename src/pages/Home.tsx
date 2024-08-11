@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import Dropdown from '../components/Dropdown';
 import SearchBar from '../components/SearchBar';
 
@@ -16,8 +17,8 @@ const Home: React.FC = () => {
     const [search, setSearch] = useState('');
     const [pokemons, setPokemons] = useState<Pokemon[]>([]);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate(); // React Router's navigate hook
 
-    // Fetch Pokémon types on component mount
     useEffect(() => {
         const fetchTypes = async () => {
             try {
@@ -32,11 +33,10 @@ const Home: React.FC = () => {
         fetchTypes();
     }, []);
 
-    // Fetch all Pokémon data on component mount
     useEffect(() => {
         const fetchPokemons = async () => {
             try {
-                const response = await axios.get('https://pokeapi.co/api/v2/pokemon?limit=151'); // Fetch first 151 Pokémon
+                const response = await axios.get('https://pokeapi.co/api/v2/pokemon?limit=151');
                 const pokemonDetails = await Promise.all(
                     response.data.results.map(async (pokemon: { name: string; url: string }) => {
                         const pokemonData = await axios.get(pokemon.url);
@@ -59,15 +59,18 @@ const Home: React.FC = () => {
         fetchPokemons();
     }, []);
 
-    // Filter Pokémon based on search and selected type
     const filteredPokemons = pokemons.filter((pokemon) => {
         const matchesSearch = pokemon.name.toLowerCase().includes(search.toLowerCase());
         const matchesType = selectedType ? pokemon.types.includes(selectedType) : true;
         return matchesSearch && matchesType;
     });
 
+    const handlePokemonClick = (id: number) => {
+        navigate(`/pokemon/${id}`);
+    };
+
     if (loading) {
-        return <div>Loading Pokémon...</div>;
+        return <div className="loading">Loading Pokémons...</div>;
     }
 
     return (
@@ -79,7 +82,7 @@ const Home: React.FC = () => {
             </div>
             <ul className="pokemon-list">
                 {filteredPokemons.map((pokemon) => (
-                    <li key={pokemon.id} className="pokemon-item">
+                    <li key={pokemon.id} className="pokemon-item" onClick={() => handlePokemonClick(pokemon.id)}>
                         <img src={pokemon.imageUrl} alt={pokemon.name} />
                         <p>{pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1)}</p>
                     </li>
