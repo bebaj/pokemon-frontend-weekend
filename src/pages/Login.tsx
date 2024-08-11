@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 
 const Login: React.FC = () => {
     const [username, setUsername] = useState('');
@@ -12,14 +12,27 @@ const Login: React.FC = () => {
         e.preventDefault();
         try {
             const response = await axios.post('http://localhost:8080/users/login', {
-                username,
-                password,
+                username,  // Sent as JSON
+                password,  // Sent as JSON
             });
-            const token = response.data.jwt; // Assuming JWT is returned as 'jwt'
-            localStorage.setItem('token', token); // Store token in local storage
-            navigate('/'); // Redirect to home after successful login
+
+            const token = response.headers['authorization']?.split(' ')[1];
+            if (token) {
+                localStorage.setItem('token', token);
+                navigate('/');
+            } else {
+                setError('Login failed, please try again.');
+            }
         } catch (err) {
-            setError('Invalid username or password');
+            if (axios.isAxiosError(err) && err.response) {
+                if (err.response.status === 401 || err.response.status === 403) {
+                    setError('Invalid username or password');
+                } else {
+                    setError('An error occurred, please try again later.');
+                }
+            } else {
+                setError('An error occurred, please check your network connection.');
+            }
         }
     };
 
@@ -33,6 +46,7 @@ const Login: React.FC = () => {
                         type="text"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
+                        required
                     />
                 </div>
                 <div>
@@ -41,6 +55,7 @@ const Login: React.FC = () => {
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        required
                     />
                 </div>
                 {error && <div className="error">{error}</div>}

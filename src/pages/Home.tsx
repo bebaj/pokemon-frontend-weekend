@@ -59,6 +59,10 @@ const Home: React.FC = () => {
         fetchPokemons();
     }, []);
 
+    const handleLoginClick = () => {
+        navigate('/login');
+    };
+
     const filteredPokemons = pokemons.filter((pokemon) => {
         const matchesSearch = pokemon.name.toLowerCase().includes(search.toLowerCase());
         const matchesType = selectedType ? pokemon.types.includes(selectedType) : true;
@@ -75,6 +79,9 @@ const Home: React.FC = () => {
 
     return (
         <div className="home-container">
+            <div>
+                <h1><button onClick={handleLoginClick}>Login</button></h1>
+            </div>
             <h1>Pokémon App</h1>
             <div className="filter-container">
                 <Dropdown options={types} onChange={setSelectedType} />
